@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เกมจับคู่สัตว์ - Pro Edition</title>
+    <title>เกมจับคู่สัตว์ - Pro Edition (Multiplayer)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Kanit & Prompt -->
@@ -17,21 +17,10 @@
                         sans: ['Kanit', 'sans-serif'],
                         display: ['Prompt', 'sans-serif'],
                     },
-                    colors: {
-                        cyber: {
-                            bg: '#080c14',
-                            card: 'rgba(255, 255, 255, 0.05)',
-                            border: 'rgba(255, 255, 255, 0.12)',
-                            accent: '#6366f1',
-                            neon: '#10b981',
-                            gold: '#f59e0b',
-                            rose: '#f43f5e'
-                        }
-                    },
                     boxShadow: {
-                        'neon-glow': '0 0 25px -5px rgba(99, 102, 241, 0.5)',
-                        'gold-glow': '0 0 25px -5px rgba(245, 158, 11, 0.6)',
-                        'card-glow': '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+                        'neon-glow': '0 0 20px -5px rgba(99, 102, 241, 0.4)',
+                        'gold-glow': '0 0 20px -5px rgba(245, 158, 11, 0.5)',
+                        'card-glow': '0 4px 20px 0 rgba(0, 0, 0, 0.5)'
                     }
                 }
             }
@@ -40,63 +29,55 @@
     <style>
         body {
             font-family: 'Kanit', sans-serif;
-            background: #000000; /* เปลี่ยนเป็นพื้นหลังสีดำสนิทตามที่ต้องการ */
-            height: 100dvh; /* ใช้ 100dvh เพื่อให้พอดีกับหน้าจอมือถือและไอแพดพอดีเป๊ะ */
+            background: #000000;
+            height: 100dvh;
             width: 100vw;
             color: #f8fafc;
-            overflow: hidden; /* ป้องกันการเลื่อนหน้าจอเด็ดขาด */
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Glassmorphic Panel - ปรับให้เข้มขึ้นเข้ากับจอพื้นดำ */
         .glass-panel {
-            background: rgba(20, 20, 25, 0.8);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(20, 20, 25, 0.92);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
         }
 
         .glass-button {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
         .glass-button:hover {
-            background: rgba(255, 255, 255, 0.18);
-            border-color: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
         }
 
         .glass-button.active {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
             border-color: #818cf8;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
         }
 
-        /* 3D Memory Card Perspective */
         .card-container {
-            perspective: 1200px;
-            container-type: size; /* เปิดใช้ Container Queries เพื่อปรับขนาดตัวเลข/สัตว์อัตโนมัติให้ใหญ่สุด */
+            perspective: 1000px;
+            container-type: size;
             width: 100%;
             height: 100%;
+            will-change: transform;
         }
 
         .memory-card {
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 0.35s ease;
             cursor: pointer;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            will-change: transform;
         }
 
-        .memory-card:hover:not(.flip):not(.matched) {
-            transform: scale(1.03) translateY(-2px);
-            box-shadow: 0 12px 24px -6px rgba(99, 102, 241, 0.4);
-        }
-
-        /* เมื่อการ์ดถูกพลิก หรือ จับคู่สำเร็จแล้ว จะหมุนแสดงหน้าสัตว์ */
         .memory-card.flip,
         .memory-card.matched {
             transform: rotateY(180deg);
@@ -106,8 +87,8 @@
             opacity: 0;
             visibility: hidden;
             transform: scale(0) rotateY(180deg);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none; /* ป้องกันไม่ให้คลิกซ้ำหลังจากจับคู่สำเร็จแล้ว */
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+            pointer-events: none;
         }
 
         .card-face {
@@ -115,39 +96,38 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            border-radius: clamp(10px, 15%, 24px); /* เก็บมุมการ์ดให้สวยงามและยืดหยุ่นตามขนาดแผ่น */
+            -webkit-backface-visibility: hidden;
+            border-radius: clamp(8px, 12%, 18px);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2), 0 8px 16px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
 
-        /* Front Face (Animal Emoji Side) */
         .card-front {
             transform: rotateY(180deg);
-            background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
-            border: 2px solid rgba(129, 140, 248, 0.5);
-            font-size: 65cqmin; /* สัตว์ใหญ่ชัดเจน 65% ของขนาดการ์ดเสมอ */
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 2px solid rgba(129, 140, 248, 0.4);
+            font-size: 60cqmin;
         }
 
-        /* Back Face (Numbered Side) */
         .card-back {
-            background: linear-gradient(135deg, rgba(30, 27, 75, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-            border: 2px solid rgba(255, 255, 255, 0.12);
+            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+            border: 2px solid rgba(255, 255, 255, 0.1);
         }
 
         .card-back::before {
             content: '';
             position: absolute;
-            inset: clamp(4px, 1.5vmin, 8px);
-            border-radius: clamp(6px, 12%, 18px); /* เก็บมุมเส้นประด้านใน */
-            border: 2px dashed rgba(255, 255, 255, 0.15);
+            inset: clamp(3px, 1.2vmin, 6px);
+            border-radius: clamp(5px, 10%, 14px);
+            border: 2px dashed rgba(255, 255, 255, 0.12);
             pointer-events: none;
         }
 
         .card-number-badge {
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%);
-            border: 2px solid rgba(255, 255, 255, 0.25);
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -155,26 +135,17 @@
             font-family: 'Prompt', sans-serif;
             font-weight: 700;
             color: #ffffff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            transition: all 0.3s;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            width: 75cqmin; /* วงกลมหมายเลขใหญ่ถึง 75% ของการ์ด */
-            height: 75cqmin;
-            font-size: 45cqmin; /* ตัวเลขใหญ่ชัดเจนมาก */
+            width: 70cqmin;
+            height: 70cqmin;
+            font-size: 42cqmin;
         }
 
-        .memory-card:hover .card-number-badge {
-            color: #ffffff;
-            border-color: #818cf8;
-            box-shadow: 0 0 12px rgba(129, 140, 248, 0.8);
-        }
-
-        /* Grid Dynamic Layouts - บังคับขนาดให้ใช้พื้นที่ 100% เสมอ */
         .game-board {
             display: grid;
             width: 100%;
-            height: 100%; /* สำคัญมาก: ให้การ์ดกระจายเต็มพื้นที่หน้าจอ */
-            gap: clamp(4px, 1.5vmin, 12px);
+            height: 100%;
+            gap: clamp(4px, 1.2vmin, 10px);
+            will-change: contents;
         }
         
         .grid-8 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
@@ -182,19 +153,6 @@
         .grid-32 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(8, 1fr); }
         .grid-64 { grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); }
 
-        @media (min-width: 640px) {
-            .grid-8 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
-            .grid-32 { grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(4, 1fr); }
-        }
-
-        /* Pulse FX for Combos */
-        @keyframes firePulse {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px #f59e0b); }
-            50% { transform: scale(1.15); filter: drop-shadow(0 0 15px #ef4444); }
-        }
-        .animate-fire { animation: firePulse 0.8s infinite ease-in-out; }
-
-        /* Confetti Canvas overlay */
         #confetti-canvas {
             position: fixed;
             top: 0;
@@ -204,6 +162,16 @@
             pointer-events: none;
             z-index: 100;
         }
+
+        .player-card {
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .player-card.active-turn {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+        }
     </style>
 </head>
 <body class="flex flex-col h-[100dvh] overflow-hidden relative bg-black">
@@ -211,47 +179,53 @@
 
     <!-- Header Navigation -->
     <header class="w-full max-w-6xl mx-auto px-2 pt-2 pb-1 relative z-10 shrink-0">
-        <div class="glass-panel rounded-2xl p-2 md:p-4 flex flex-row justify-between items-center gap-2">
+        <div class="glass-panel rounded-2xl p-2 md:p-3 flex flex-row justify-between items-center gap-2">
             
             <!-- Brand Logo -->
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 md:w-12 md:h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center text-lg md:text-2xl shadow-neon-glow">
+                <div class="w-8 h-8 md:w-11 md:h-11 rounded-xl bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center text-lg md:text-xl shadow-neon-glow">
                     🐾
                 </div>
                 <div>
-                    <h1 class="text-base md:text-2xl font-extrabold font-display bg-gradient-to-r from-white via-indigo-200 to-emerald-300 bg-clip-text text-transparent">
-                        ANIMAL MATCH <span class="hidden md:inline text-xs px-2 py-0.5 rounded-full bg-indigo-500/30 border border-indigo-400/40 text-indigo-300 font-normal">PRO</span>
+                    <h1 class="text-sm md:text-xl font-extrabold font-display bg-gradient-to-r from-white via-indigo-200 to-emerald-300 bg-clip-text text-transparent">
+                        ANIMAL MATCH <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/30 border border-indigo-400/40 text-indigo-300 font-normal">PRO</span>
                     </h1>
-                    <p class="hidden md:block text-[10px] md:text-xs text-slate-400">เกมทดสอบความจำระดับพรีเมียม</p>
                 </div>
+            </div>
+
+            <!-- Player Count Selector (1-4 Players) -->
+            <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-800 gap-1">
+                <span class="text-[10px] text-slate-400 px-1 font-medium hidden sm:inline">ผู้เล่น:</span>
+                <button onclick="changePlayerCount(1)" id="p-btn-1" class="glass-button active text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">1 คน</button>
+                <button onclick="changePlayerCount(2)" id="p-btn-2" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">2 คน</button>
+                <button onclick="changePlayerCount(3)" id="p-btn-3" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">3 คน</button>
+                <button onclick="changePlayerCount(4)" id="p-btn-4" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">4 คน</button>
             </div>
 
             <!-- Card Level Selector Buttons -->
             <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-800 gap-1">
-                <span class="text-[10px] text-slate-400 px-1 font-medium hidden lg:inline">การ์ด:</span>
-                <button onclick="changeDifficulty(8)" id="btn-8" class="glass-button text-[10px] md:text-sm font-semibold px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-slate-300">8</button>
-                <button onclick="changeDifficulty(16)" id="btn-16" class="glass-button active text-[10px] md:text-sm font-semibold px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-slate-300">16</button>
-                <button onclick="changeDifficulty(32)" id="btn-32" class="glass-button text-[10px] md:text-sm font-semibold px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-slate-300">32</button>
-                <button onclick="changeDifficulty(64)" id="btn-64" class="glass-button text-[10px] md:text-sm font-semibold px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-slate-300">64</button>
+                <button onclick="changeDifficulty(8)" id="btn-8" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">8</button>
+                <button onclick="changeDifficulty(16)" id="btn-16" class="glass-button active text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">16</button>
+                <button onclick="changeDifficulty(32)" id="btn-32" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">32</button>
+                <button onclick="changeDifficulty(64)" id="btn-64" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">64</button>
             </div>
 
-            <!-- Audio & Sound Controls -->
-            <div class="flex items-center gap-1.5 md:gap-2">
-                <button id="sound-btn" onclick="toggleSound()" class="glass-button p-1.5 md:p-2.5 rounded-xl text-indigo-300 hover:text-white" title="เปิด/ปิด เสียง">
-                    <svg id="sound-icon-on" class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-                    <svg id="sound-icon-off" class="w-4 h-4 md:w-5 md:h-5 hidden text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+            <!-- Audio & Reset & Profile -->
+            <div class="flex items-center gap-1.5">
+                <button id="sound-btn" onclick="toggleSound()" class="glass-button p-1.5 md:p-2 rounded-xl text-indigo-300 hover:text-white" title="เปิด/ปิด เสียง">
+                    <svg id="sound-icon-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                    <svg id="sound-icon-off" class="w-4 h-4 hidden text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
                 </button>
-                <button onclick="restartGame()" class="glass-button px-2 py-1 md:px-4 md:py-2 rounded-xl text-[10px] md:text-sm font-bold text-amber-300 hover:text-amber-200 border-amber-500/30 hover:border-amber-400 flex items-center gap-1 shadow-gold-glow">
-                    <span>🔄</span> <span class="hidden md:inline">เริ่มใหม่</span>
+                <button onclick="restartGame()" class="glass-button px-2 py-1.5 rounded-xl text-xs font-bold text-amber-300 hover:text-amber-200 border-amber-500/30 flex items-center gap-1">
+                    <span>🔄</span>
                 </button>
                 
                 <!-- Developer Profile Badge (Top Right) -->
                 <div class="relative group ml-1">
-                    <div class="w-8 h-8 md:w-11 md:h-11 rounded-full p-0.5 bg-gradient-to-tr from-indigo-500 to-emerald-400 shadow-neon-glow flex items-center justify-center overflow-hidden cursor-pointer">
+                    <div class="w-8 h-8 md:w-10 md:h-10 rounded-full p-0.5 bg-gradient-to-tr from-indigo-500 to-emerald-400 shadow-neon-glow flex items-center justify-center overflow-hidden cursor-pointer">
                         <img src="https://github.com/metawat888/Picture/raw/69f9d3a46e017adc43abb8db3503ea8106ecae61/97488303_2887790847941184_353651305119481856_n.jpg" alt="นายเมธาวัฒน์ พงสะพัง" class="w-full h-full rounded-full object-cover" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=M'">
                     </div>
-                    <!-- Tooltip Card on Hover -->
-                    <div class="absolute right-0 top-full mt-2 w-48 p-2.5 rounded-xl glass-panel text-center opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-300 z-50 shadow-2xl border border-indigo-500/30">
+                    <div class="absolute right-0 top-full mt-2 w-48 p-2.5 rounded-xl glass-panel text-center opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-200 z-50 shadow-2xl border border-indigo-500/30">
                         <p class="text-[10px] text-slate-400 font-medium">พัฒนาโดย</p>
                         <p class="text-xs font-bold text-indigo-300 mt-0.5">นายเมธาวัฒน์ พงสะพัง</p>
                     </div>
@@ -260,58 +234,11 @@
         </div>
     </header>
 
-    <main class="w-full max-w-6xl mx-auto px-2 py-1 md:py-2 flex-grow flex flex-col items-center justify-start relative z-10 min-h-0">
+    <main class="w-full max-w-6xl mx-auto px-2 py-1 flex-grow flex flex-col items-center justify-start relative z-10 min-h-0">
         
-        <!-- Dashboard Live Stats Grid -->
-        <div class="w-full grid grid-cols-4 gap-1.5 md:gap-3 mb-2 shrink-0">
-            <!-- Timer -->
-            <div class="glass-panel p-1.5 md:p-3 rounded-xl md:rounded-2xl flex items-center justify-center md:justify-start gap-1.5 md:gap-3">
-                <div class="w-6 h-6 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm md:text-xl shrink-0">
-                    ⏱️
-                </div>
-                <div class="text-center md:text-left">
-                    <div class="hidden md:block text-[10px] uppercase tracking-wider text-slate-400 font-medium">เวลาที่ใช้</div>
-                    <div id="time-display" class="text-xs md:text-xl font-bold font-display text-white">00:00</div>
-                </div>
-            </div>
-
-            <!-- Moves & Accuracy -->
-            <div class="glass-panel p-1.5 md:p-3 rounded-xl md:rounded-2xl flex items-center justify-center md:justify-start gap-1.5 md:gap-3">
-                <div class="w-6 h-6 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm md:text-xl shrink-0">
-                    🎯
-                </div>
-                <div class="text-center md:text-left flex flex-col md:block">
-                    <div class="hidden md:block text-[10px] uppercase tracking-wider text-slate-400 font-medium">เปิดป้าย</div>
-                    <div class="text-xs md:text-xl font-bold font-display text-white whitespace-nowrap">
-                        <span id="moves-display">0</span> <span class="text-[8px] md:text-xs font-normal text-slate-400 block md:inline">(<span id="accuracy-display">100</span>%)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Score & Streak Multiplier -->
-            <div class="glass-panel p-1.5 md:p-3 rounded-xl md:rounded-2xl flex items-center justify-center md:justify-start gap-1.5 md:gap-3">
-                <div id="combo-fire-icon" class="w-6 h-6 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm md:text-xl shrink-0">
-                    🔥
-                </div>
-                <div class="text-center md:text-left flex flex-col md:block">
-                    <div class="hidden md:block text-[10px] uppercase tracking-wider text-slate-400 font-medium">คะแนน / คอมโบ</div>
-                    <div class="text-xs md:text-xl font-bold font-display text-amber-300 relative">
-                        <span id="score-display">0</span> <span id="combo-badge" class="absolute -top-3 md:-top-2 left-1/2 md:left-auto md:ml-1 -translate-x-1/2 md:translate-x-0 text-[8px] md:text-xs px-1 py-0.5 rounded bg-amber-500/30 text-amber-300 hidden">x1</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Hint Radar Button -->
-            <div class="glass-panel p-1 md:p-2.5 rounded-xl md:rounded-2xl flex items-center justify-center md:justify-between px-2 md:px-4">
-                <div class="hidden md:block">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-medium">คำใบ้แอบดู</div>
-                    <div class="text-xs text-slate-300">เหลือ: <span id="hint-count" class="font-bold text-indigo-400">3</span> ครั้ง</div>
-                </div>
-                <button id="hint-btn" onclick="useHint()" class="glass-button w-full md:w-auto h-full md:h-auto px-1 md:px-3 py-1 md:py-1.5 rounded-lg md:rounded-xl text-[10px] md:text-xs font-bold text-indigo-300 border-indigo-500/40 hover:bg-indigo-600/30 flex flex-col md:flex-row items-center justify-center gap-0.5 md:gap-1">
-                    <span class="text-sm md:text-base">💡</span>
-                    <span><span class="md:hidden" id="hint-count-mobile">3</span><span class="hidden md:inline"> สแกน</span></span>
-                </button>
-            </div>
+        <!-- Scoreboard for 1-4 Players (Top Dashboard) -->
+        <div id="scoreboard-container" class="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 mb-2 shrink-0">
+            <!-- Dynamically populated by JS -->
         </div>
 
         <div id="board-wrapper" class="w-full flex-grow flex justify-center items-center py-1 min-h-0 relative">
@@ -322,8 +249,8 @@
     </main>
 
     <!-- Victory Modal -->
-    <div id="victory-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-500">
-        <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-md w-full text-center border-2 border-indigo-500/50 shadow-neon-glow transform scale-90 transition-all duration-500" id="victory-card">
+    <div id="victory-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-md w-full text-center border-2 border-indigo-500/50 shadow-neon-glow transform scale-95 transition-transform duration-300" id="victory-card">
             
             <div class="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center bg-gradient-to-tr from-amber-400 to-amber-600 rounded-2xl text-4xl shadow-gold-glow animate-bounce">
                 🏆
@@ -332,31 +259,10 @@
             <h2 class="text-3xl font-extrabold font-display bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent mb-1">
                 VICTORY!
             </h2>
-            <p class="text-slate-300 text-sm mb-4">ยินดีด้วย! คุณจับคู่สัตว์ครบทุกตัวแล้ว</p>
+            <p id="winner-announcement" class="text-slate-300 text-sm mb-4">ผู้ชนะคือ ผู้เล่นที่ 1 🎉</p>
 
-            <!-- Star Rating -->
-            <div id="star-rating" class="flex justify-center text-3xl gap-2 mb-6 text-amber-400">
-                <span>⭐</span><span>⭐</span><span>⭐</span>
-            </div>
-
-            <!-- Stats Summary Matrix -->
-            <div class="grid grid-cols-2 gap-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-left text-sm mb-6">
-                <div>
-                    <span class="text-slate-400 text-xs block">ระดับความยาก</span>
-                    <span id="final-level" class="font-bold text-indigo-400">16 ใบ</span>
-                </div>
-                <div>
-                    <span class="text-slate-400 text-xs block">เวลาที่ใช้</span>
-                    <span id="final-time" class="font-bold text-emerald-400">00:00</span>
-                </div>
-                <div>
-                    <span class="text-slate-400 text-xs block">เปิดทั้งหมด</span>
-                    <span id="final-moves" class="font-bold text-white">0 ครั้ง</span>
-                </div>
-                <div>
-                    <span class="text-slate-400 text-xs block">คะแนนรวมสุทธิ</span>
-                    <span id="final-score" class="font-bold text-amber-400">0</span>
-                </div>
+            <div id="final-scoreboard-list" class="space-y-2 bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-left text-sm mb-6">
+                <!-- Final scores -->
             </div>
 
             <div class="flex gap-3">
@@ -368,7 +274,6 @@
     </div>
 
     <script>
-        // Synthesizer Audio Engine using Web Audio API
         class SoundEngine {
             constructor() {
                 this.ctx = null;
@@ -399,10 +304,7 @@
                 } catch(e) {}
             }
 
-            flip() {
-                this.playTone(400, 0.08, 'sine', 0.15);
-            }
-
+            flip() { this.playTone(400, 0.08, 'sine', 0.15); }
             match() {
                 if (!this.enabled) return;
                 this.init();
@@ -410,20 +312,10 @@
                     setTimeout(() => this.playTone(freq, 0.2, 'triangle', 0.12), i * 60);
                 });
             }
-
             mismatch() {
-                if (!this.enabled) return;
                 this.playTone(220, 0.15, 'sawtooth', 0.1);
                 setTimeout(() => this.playTone(180, 0.2, 'sawtooth', 0.08), 100);
             }
-
-            combo() {
-                if (!this.enabled) return;
-                [600, 800, 1000, 1200].forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 0.15, 'sine', 0.15), i * 40);
-                });
-            }
-
             victory() {
                 if (!this.enabled) return;
                 const notes = [440, 554.37, 659.25, 880, 659.25, 880];
@@ -443,59 +335,33 @@
         ];
 
         let totalCards = 16;
+        let playerCount = 1;
+        let currentTurn = 0;
+        let playerScores = [0, 0, 0, 0];
         let cards = [];
         let hasFlippedCard = false;
         let lockBoard = false;
         let firstCard, secondCard;
-        
-        let moves = 0;
         let successfulMatches = 0;
-        let totalScore = 0;
-        let comboCount = 0;
-        let hintsRemaining = 3;
-        
-        let timerInterval = null;
-        let secondsElapsed = 0;
-        let isGameStarted = false;
 
         const boardElement = document.getElementById('game-board');
-        const movesDisplay = document.getElementById('moves-display');
-        const accuracyDisplay = document.getElementById('accuracy-display');
-        const scoreDisplay = document.getElementById('score-display');
-        const timeDisplay = document.getElementById('time-display');
-        const comboBadge = document.getElementById('combo-badge');
-        const comboFireIcon = document.getElementById('combo-fire-icon');
-        const hintCountDisplay = document.getElementById('hint-count');
-        const hintBtn = document.getElementById('hint-btn');
+        const scoreboardContainer = document.getElementById('scoreboard-container');
 
         function initGame() {
-            clearInterval(timerInterval);
-            
             hasFlippedCard = false;
             lockBoard = false;
             firstCard = null;
             secondCard = null;
-            moves = 0;
             successfulMatches = 0;
-            totalScore = 0;
-            comboCount = 0;
-            secondsElapsed = 0;
-            isGameStarted = false;
-            hintsRemaining = 3;
-
-            updateMovesAndAccuracy();
-            updateScoreUI();
-            updateTimeDisplay();
-            hintCountDisplay.textContent = hintsRemaining;
-            const mobileHint = document.getElementById('hint-count-mobile');
-            if (mobileHint) mobileHint.textContent = hintsRemaining;
-            hintBtn.disabled = false;
-            hintBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            currentTurn = 0;
+            playerScores = [0, 0, 0, 0];
 
             const modal = document.getElementById('victory-modal');
             const card = document.getElementById('victory-card');
             modal.classList.add('opacity-0', 'pointer-events-none');
-            card.classList.add('scale-90');
+            card.classList.add('scale-95');
+
+            renderScoreboard();
 
             const numPairs = totalCards / 2;
             const selectedEmojis = allAnimalEmojis.slice(0, numPairs);
@@ -504,6 +370,8 @@
 
             boardElement.className = `game-board grid-${totalCards} transition-all duration-300`;
             boardElement.innerHTML = '';
+
+            const fragment = document.createDocumentFragment();
 
             cards.forEach((animal, index) => {
                 const cardContainer = document.createElement('div');
@@ -531,17 +399,49 @@
 
                 memoryCard.addEventListener('click', flipCard);
                 cardContainer.appendChild(memoryCard);
-                boardElement.appendChild(cardContainer);
+                fragment.appendChild(cardContainer);
             });
+
+            boardElement.appendChild(fragment);
 
             [8, 16, 32, 64].forEach(level => {
                 const btn = document.getElementById(`btn-${level}`);
-                if (level === totalCards) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                if (level === totalCards) btn.classList.add('active');
+                else btn.classList.remove('active');
             });
+            [1, 2, 3, 4].forEach(p => {
+                const btn = document.getElementById(`p-btn-${p}`);
+                if (p === playerCount) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+
+        function renderScoreboard() {
+            scoreboardContainer.innerHTML = '';
+            scoreboardContainer.className = `w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-${Math.min(playerCount, 4)} gap-2 mb-2 shrink-0`;
+            
+            for (let i = 0; i < playerCount; i++) {
+                const isActive = (i === currentTurn);
+                const pBox = document.createElement('div');
+                pBox.className = `glass-panel p-2 md:p-3 rounded-xl flex items-center justify-between player-card ${isActive ? 'active-turn' : 'opacity-70'}`;
+                
+                pBox.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-xs md:text-sm">
+                            P${i + 1}
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-medium">ผู้เล่นคนที่ ${i + 1}</div>
+                            <div class="text-xs md:text-sm font-bold text-white">${isActive ? '✨ ตาของคุณ' : 'รอสักครู่'}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm md:text-lg font-bold font-display text-amber-400">${playerScores[i]}</span>
+                        <span class="text-[10px] text-slate-400 block">คะแนน</span>
+                    </div>
+                `;
+                scoreboardContainer.appendChild(pBox);
+            }
         }
 
         function changeDifficulty(newTotal) {
@@ -550,13 +450,18 @@
             initGame();
         }
 
+        function changePlayerCount(count) {
+            if (playerCount === count) return;
+            playerCount = count;
+            initGame();
+        }
+
         function shuffle(array) {
             let currentIndex = array.length, randomIndex;
             while (currentIndex !== 0) {
                 randomIndex = Math.floor(Math.random() * currentIndex);
                 currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [
-                    array[randomIndex], array[currentIndex]];
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
             }
             return array;
         }
@@ -564,11 +469,6 @@
         function flipCard() {
             if (lockBoard) return;
             if (this === firstCard) return;
-
-            if (!isGameStarted) {
-                isGameStarted = true;
-                startTimer();
-            }
 
             soundFX.flip();
             this.classList.add('flip');
@@ -580,8 +480,6 @@
             }
 
             secondCard = this;
-            moves++;
-            updateMovesAndAccuracy();
             checkForMatch();
         }
 
@@ -599,39 +497,25 @@
             firstCard.removeEventListener('click', flipCard);
             secondCard.removeEventListener('click', flipCard);
 
-            // บังคับพลิกและซ่อนการ์ดทันทีเมื่อจับคู่สำเร็จ
             firstCard.classList.add('flip', 'matched');
             secondCard.classList.add('flip', 'matched');
 
-            comboCount++;
-            const basePoints = 100;
-            const comboMultiplier = Math.min(comboCount, 5);
-            const addedPoints = basePoints * comboMultiplier;
-            totalScore += addedPoints;
-
-            if (comboCount > 1) {
-                soundFX.combo();
-                showComboEffect(comboMultiplier);
-            } else {
-                soundFX.match();
-            }
-
-            updateScoreUI();
+            soundFX.match();
+            playerScores[currentTurn]++;
             successfulMatches++;
 
-            if (successfulMatches === totalCards / 2) {
-                setTimeout(handleVictory, 600);
-            }
+            renderScoreboard();
 
-            resetBoardState();
+            if (successfulMatches === totalCards / 2) {
+                setTimeout(handleVictory, 400);
+            } else {
+                resetBoardState();
+            }
         }
 
         function unflipMismatchCards() {
             lockBoard = true;
             soundFX.mismatch();
-
-            comboCount = 0;
-            updateScoreUI();
 
             setTimeout(() => {
                 if (firstCard && secondCard) {
@@ -639,7 +523,10 @@
                     secondCard.classList.remove('flip');
                 }
                 resetBoardState();
-            }, 900);
+                
+                currentTurn = (currentTurn + 1) % playerCount;
+                renderScoreboard();
+            }, 750);
         }
 
         function resetBoardState() {
@@ -647,92 +534,42 @@
             [firstCard, secondCard] = [null, null];
         }
 
-        function updateMovesAndAccuracy() {
-            movesDisplay.textContent = moves;
-            let accuracy = 100;
-            if (moves > 0) {
-                accuracy = Math.round((successfulMatches / moves) * 100);
-            }
-            accuracyDisplay.textContent = Math.min(100, Math.max(0, accuracy));
-        }
-
-        function updateScoreUI() {
-            scoreDisplay.textContent = totalScore;
-            if (comboCount > 1) {
-                comboBadge.textContent = `x${comboCount}`;
-                comboBadge.classList.remove('hidden');
-                comboFireIcon.classList.add('animate-fire');
-            } else {
-                comboBadge.classList.add('hidden');
-                comboFireIcon.classList.remove('animate-fire');
-            }
-        }
-
-        function showComboEffect(multiplier) {
-            comboBadge.classList.add('scale-125');
-            setTimeout(() => comboBadge.classList.remove('scale-125'), 300);
-        }
-
-        function useHint() {
-            if (hintsRemaining <= 0 || lockBoard) return;
-            hintsRemaining--;
-            hintCountDisplay.textContent = hintsRemaining;
-            const mobileHint = document.getElementById('hint-count-mobile');
-            if (mobileHint) mobileHint.textContent = hintsRemaining;
-
-            if (hintsRemaining === 0) {
-                hintBtn.disabled = true;
-                hintBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            }
-
-            lockBoard = true;
-            const unMatchedCards = document.querySelectorAll('.memory-card:not(.matched):not(.flip)');
-            
-            unMatchedCards.forEach(card => card.classList.add('flip'));
-
-            setTimeout(() => {
-                unMatchedCards.forEach(card => card.classList.remove('flip'));
-                lockBoard = false;
-            }, 1200);
-        }
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                secondsElapsed++;
-                updateTimeDisplay();
-            }, 1000);
-        }
-
-        function updateTimeDisplay() {
-            const mins = Math.floor(secondsElapsed / 60);
-            const secs = secondsElapsed % 60;
-            timeDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-
         function handleVictory() {
-            clearInterval(timerInterval);
             soundFX.victory();
             triggerConfetti();
 
-            const accuracy = moves > 0 ? (successfulMatches / moves) * 100 : 100;
-            let stars = '⭐⭐⭐';
-            if (accuracy < 50) stars = '⭐';
-            else if (accuracy < 75) stars = '⭐⭐';
+            let maxScore = Math.max(...playerScores.slice(0, playerCount));
+            let winners = [];
+            for (let i = 0; i < playerCount; i++) {
+                if (playerScores[i] === maxScore) winners.push(i + 1);
+            }
 
-            document.getElementById('star-rating').innerHTML = stars;
-            document.getElementById('final-level').textContent = `${totalCards} ใบ`;
-            document.getElementById('final-time').textContent = timeDisplay.textContent;
-            document.getElementById('final-moves').textContent = `${moves} ครั้ง`;
-            
-            const timeBonus = Math.max(0, 300 - secondsElapsed) * 2;
-            const finalScoreVal = totalScore + timeBonus;
-            document.getElementById('final-score').textContent = finalScoreVal;
+            let announcement = '';
+            if (playerCount === 1) {
+                announcement = `ยินดีด้วย! คุณเก็บการ์ดครบทั้งหมดแล้ว 🎉`;
+            } else if (winners.length === 1) {
+                announcement = `🏆 ผู้ชนะคือ ผู้เล่นที่ ${winners[0]} ด้วยคะแนน ${maxScore} คะแนน!`;
+            } else {
+                announcement = `🤝 เสมอกัน! ระหว่างผู้เล่นที่ ${winners.join(', ')} (${maxScore} คะแนน)`;
+            }
+
+            document.getElementById('winner-announcement').textContent = announcement;
+
+            let scoreListHTML = '';
+            for (let i = 0; i < playerCount; i++) {
+                scoreListHTML += `
+                    <div class="flex justify-between items-center text-xs md:text-sm">
+                        <span class="text-slate-300 font-medium">ผู้เล่นคนที่ ${i + 1}</span>
+                        <span class="font-bold text-amber-400">${playerScores[i]} คู่</span>
+                    </div>
+                `;
+            }
+            document.getElementById('final-scoreboard-list').innerHTML = scoreListHTML;
 
             const modal = document.getElementById('victory-modal');
             const card = document.getElementById('victory-card');
             modal.classList.remove('opacity-0', 'pointer-events-none');
-            card.classList.remove('scale-90');
+            card.classList.remove('scale-95');
         }
 
         function triggerConfetti() {
@@ -744,15 +581,15 @@
             const particles = [];
             const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6'];
 
-            for (let i = 0; i < 120; i++) {
+            for (let i = 0; i < 80; i++) {
                 particles.push({
                     x: canvas.width / 2,
                     y: canvas.height / 2,
-                    vx: (Math.random() - 0.5) * 16,
-                    vy: (Math.random() - 0.7) * 16,
+                    vx: (Math.random() - 0.5) * 14,
+                    vy: (Math.random() - 0.6) * 14,
                     color: colors[Math.floor(Math.random() * colors.length)],
-                    radius: Math.random() * 6 + 4,
-                    gravity: 0.25,
+                    radius: Math.random() * 5 + 3,
+                    gravity: 0.2,
                     alpha: 1
                 });
             }
@@ -765,7 +602,7 @@
                     p.x += p.vx;
                     p.y += p.vy;
                     p.vy += p.gravity;
-                    p.alpha -= 0.012;
+                    p.alpha -= 0.015;
 
                     if (p.alpha > 0) {
                         alive = true;
@@ -779,11 +616,8 @@
                     }
                 });
 
-                if (alive) {
-                    requestAnimationFrame(animateConfetti);
-                } else {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                }
+                if (alive) requestAnimationFrame(animateConfetti);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
 
             animateConfetti();
@@ -796,6 +630,7 @@
         }
 
         function restartGame() {
+            initGroup = true;
             initGame();
         }
 
