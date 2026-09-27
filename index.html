@@ -1,26 +1,31 @@
 <!DOCTYPE html>
-<html lang="th" class="dark">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>เกมจับคู่สัตว์ - Pro Edition (Multiplayer)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>เกมจับคู่สัตว์ - Pro Edition (Premium)</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Kanit & Prompt -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Prompt:wght@400;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Kanit', 'sans-serif'],
                         display: ['Prompt', 'sans-serif'],
                     },
+                    colors: {
+                        brand: {
+                            orange: '#f97316', // Orange 500
+                            dark: '#1e293b',   // Slate 800
+                            light: '#f8fafc',  // Slate 50
+                        }
+                    },
                     boxShadow: {
-                        'neon-glow': '0 0 20px -5px rgba(99, 102, 241, 0.4)',
-                        'gold-glow': '0 0 20px -5px rgba(245, 158, 11, 0.5)',
-                        'card-glow': '0 4px 20px 0 rgba(0, 0, 0, 0.5)'
+                        'premium': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'card-glow': '0 0 15px rgba(249, 115, 22, 0.4)'
                     }
                 }
             }
@@ -29,35 +34,39 @@
     <style>
         body {
             font-family: 'Kanit', sans-serif;
-            background: #000000;
+            background-color: #f4f4f5; /* Light gray/white background */
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
             height: 100dvh;
             width: 100vw;
-            color: #f8fafc;
+            color: #334155;
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
         }
 
         .glass-panel {
-            background: rgba(20, 20, 25, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         }
 
-        .glass-button {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            transition: background-color 0.2s ease, border-color 0.2s ease;
+        .btn-style {
+            background: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
         }
 
-        .glass-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.25);
+        .btn-style:hover {
+            background: #e2e8f0;
+            color: #334155;
         }
 
-        .glass-button.active {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            border-color: #818cf8;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+        .btn-style.active {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+            border-color: #ea580c;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
         }
 
         .card-container {
@@ -71,11 +80,13 @@
         .memory-card {
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.35s ease;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
             will-change: transform;
+            border-radius: clamp(8px, 12%, 18px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
         .memory-card.flip,
@@ -86,8 +97,8 @@
         .memory-card.matched {
             opacity: 0;
             visibility: hidden;
-            transform: scale(0) rotateY(180deg);
-            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+            transform: scale(0.5) rotateY(180deg);
+            transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s ease;
             pointer-events: none;
         }
 
@@ -97,61 +108,83 @@
             height: 100%;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
-            border-radius: clamp(8px, 12%, 18px);
+            border-radius: inherit;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
         }
 
         .card-front {
             transform: rotateY(180deg);
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border: 2px solid rgba(129, 140, 248, 0.4);
-            font-size: 60cqmin;
+            background: #ffffff;
+            border: 2px solid #f97316;
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.2);
         }
 
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: inherit;
+        }
+
+        /* Glossy Black Back Design */
         .card-back {
-            background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, #2a2b2e 0%, #0a0a0b 100%);
+            border: 1px solid #475569;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.1);
         }
 
-        .card-back::before {
+        /* Shine Effect */
+        .card-back::after {
             content: '';
             position: absolute;
-            inset: clamp(3px, 1.2vmin, 6px);
-            border-radius: clamp(5px, 10%, 14px);
-            border: 2px dashed rgba(255, 255, 255, 0.12);
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shine 4s infinite;
             pointer-events: none;
         }
 
+        @keyframes shine {
+            0% { left: -150%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+
         .card-number-badge {
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, rgba(0, 0, 0, 0.7) 100%);
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 2px solid #f97316;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Prompt', sans-serif;
             font-weight: 700;
-            color: #ffffff;
-            width: 70cqmin;
-            height: 70cqmin;
-            font-size: 42cqmin;
+            color: #f97316;
+            width: 50cqmin;
+            height: 50cqmin;
+            font-size: 28cqmin;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.1);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            z-index: 2;
         }
 
         .game-board {
             display: grid;
             width: 100%;
             height: 100%;
-            gap: clamp(4px, 1.2vmin, 10px);
+            gap: clamp(6px, 2vmin, 14px);
             will-change: contents;
+            /* Fixed 4x4 Grid for 16 Cards */
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            padding: 4px;
         }
-        
-        .grid-8 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); }
-        .grid-16 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); }
-        .grid-32 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(8, 1fr); }
-        .grid-64 { grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); }
 
         #confetti-canvas {
             position: fixed;
@@ -164,129 +197,144 @@
         }
 
         .player-card {
-            transition: border-color 0.2s ease, background-color 0.2s ease;
+            transition: all 0.3s ease;
             border: 2px solid transparent;
+            background: #ffffff;
         }
         .player-card.active-turn {
-            border-color: #6366f1;
-            background: rgba(99, 102, 241, 0.15);
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+            border-color: #f97316;
+            background: #fff7ed;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.15);
+            transform: translateY(-2px);
+        }
+        .player-card.active-turn .p-icon {
+            background: #f97316;
+            color: white;
         }
     </style>
 </head>
-<body class="flex flex-col h-[100dvh] overflow-hidden relative bg-black">
+<body class="flex flex-col h-[100dvh] overflow-hidden relative">
     <canvas id="confetti-canvas"></canvas>
 
     <!-- Header Navigation -->
-    <header class="w-full max-w-6xl mx-auto px-2 pt-2 pb-1 relative z-10 shrink-0">
-        <div class="glass-panel rounded-2xl p-2 md:p-3 flex flex-row justify-between items-center gap-2">
+    <header class="w-full max-w-5xl mx-auto px-3 pt-3 pb-1 relative z-10 shrink-0">
+        <div class="glass-panel rounded-2xl p-2.5 md:p-3 flex flex-row justify-between items-center gap-2">
             
             <!-- Brand Logo -->
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 md:w-11 md:h-11 rounded-xl bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center text-lg md:text-xl shadow-neon-glow">
-                    🐾
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-slate-800 to-black flex items-center justify-center text-xl md:text-2xl shadow-premium border border-slate-700">
+                    🦁
                 </div>
                 <div>
-                    <h1 class="text-sm md:text-xl font-extrabold font-display bg-gradient-to-r from-white via-indigo-200 to-emerald-300 bg-clip-text text-transparent">
-                        ANIMAL MATCH <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/30 border border-indigo-400/40 text-indigo-300 font-normal">PRO</span>
+                    <h1 class="text-base md:text-xl font-extrabold font-display text-slate-800 tracking-tight">
+                        ANIMAL MATCH
                     </h1>
+                    <div class="text-[10px] md:text-xs font-semibold text-orange-500 uppercase tracking-widest mt-[-2px]">
+                        Premium Edition
+                    </div>
                 </div>
             </div>
 
             <!-- Player Count Selector (1-4 Players) -->
-            <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-800 gap-1">
-                <span class="text-[10px] text-slate-400 px-1 font-medium hidden sm:inline">ผู้เล่น:</span>
-                <button onclick="changePlayerCount(1)" id="p-btn-1" class="glass-button active text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">1 คน</button>
-                <button onclick="changePlayerCount(2)" id="p-btn-2" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">2 คน</button>
-                <button onclick="changePlayerCount(3)" id="p-btn-3" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">3 คน</button>
-                <button onclick="changePlayerCount(4)" id="p-btn-4" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">4 คน</button>
+            <div class="flex items-center bg-slate-50 p-1.5 rounded-xl border border-slate-200 gap-1.5 shadow-inner">
+                <span class="text-xs text-slate-400 px-2 font-semibold hidden sm:inline">PLAYERS</span>
+                <button onclick="changePlayerCount(1)" id="p-btn-1" class="btn-style active text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-lg">1</button>
+                <button onclick="changePlayerCount(2)" id="p-btn-2" class="btn-style text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-lg">2</button>
+                <button onclick="changePlayerCount(3)" id="p-btn-3" class="btn-style text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-lg">3</button>
+                <button onclick="changePlayerCount(4)" id="p-btn-4" class="btn-style text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-lg">4</button>
             </div>
 
-            <!-- Card Level Selector Buttons -->
-            <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-800 gap-1">
-                <button onclick="changeDifficulty(8)" id="btn-8" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">8</button>
-                <button onclick="changeDifficulty(16)" id="btn-16" class="glass-button active text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">16</button>
-                <button onclick="changeDifficulty(32)" id="btn-32" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">32</button>
-                <button onclick="changeDifficulty(64)" id="btn-64" class="glass-button text-[10px] md:text-xs font-semibold px-2 py-1 rounded-lg text-slate-300">64</button>
-            </div>
-
-            <!-- Audio & Reset & Profile -->
-            <div class="flex items-center gap-1.5">
-                <button id="sound-btn" onclick="toggleSound()" class="glass-button p-1.5 md:p-2 rounded-xl text-indigo-300 hover:text-white" title="เปิด/ปิด เสียง">
-                    <svg id="sound-icon-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-                    <svg id="sound-icon-off" class="w-4 h-4 hidden text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+            <!-- Audio, Reset & Profile -->
+            <div class="flex items-center gap-2">
+                <button id="sound-btn" onclick="toggleSound()" class="btn-style p-2 rounded-xl hover:text-orange-500" title="เปิด/ปิด เสียง">
+                    <svg id="sound-icon-on" class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                    <svg id="sound-icon-off" class="w-4 h-4 md:w-5 md:h-5 hidden text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
                 </button>
-                <button onclick="restartGame()" class="glass-button px-2 py-1.5 rounded-xl text-xs font-bold text-amber-300 hover:text-amber-200 border-amber-500/30 flex items-center gap-1">
-                    <span>🔄</span>
+                <button onclick="restartGame()" class="btn-style px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1 hover:text-orange-500">
+                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 </button>
                 
-                <!-- Developer Profile Badge (Top Right) -->
+                <!-- Developer Profile Badge -->
                 <div class="relative group ml-1">
-                    <div class="w-8 h-8 md:w-10 md:h-10 rounded-full p-0.5 bg-gradient-to-tr from-indigo-500 to-emerald-400 shadow-neon-glow flex items-center justify-center overflow-hidden cursor-pointer">
+                    <div class="w-10 h-10 md:w-12 md:h-12 rounded-full p-0.5 bg-gradient-to-tr from-orange-400 to-orange-600 shadow-premium flex items-center justify-center overflow-hidden cursor-pointer border-2 border-white">
                         <img src="https://github.com/metawat888/Picture/raw/69f9d3a46e017adc43abb8db3503ea8106ecae61/97488303_2887790847941184_353651305119481856_n.jpg" alt="นายเมธาวัฒน์ พงสะพัง" class="w-full h-full rounded-full object-cover" onerror="this.src='https://placehold.co/100x100/1e293b/ffffff?text=M'">
                     </div>
-                    <div class="absolute right-0 top-full mt-2 w-48 p-2.5 rounded-xl glass-panel text-center opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity duration-200 z-50 shadow-2xl border border-indigo-500/30">
-                        <p class="text-[10px] text-slate-400 font-medium">พัฒนาโดย</p>
-                        <p class="text-xs font-bold text-indigo-300 mt-0.5">นายเมธาวัฒน์ พงสะพัง</p>
+                    <div class="absolute right-0 top-full mt-3 w-56 p-3 rounded-2xl bg-slate-800 text-center opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200 z-50 shadow-2xl border border-slate-700 transform translate-y-2 group-hover:translate-y-0">
+                        <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Developed By</p>
+                        <p class="text-sm font-bold text-white mt-1">นายเมธาวัฒน์ พงสะพัง</p>
+                        <div class="mt-2 text-[10px] text-orange-400 font-semibold bg-orange-400/10 py-1 rounded-lg">Pro Edition v2.0</div>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="w-full max-w-6xl mx-auto px-2 py-1 flex-grow flex flex-col items-center justify-start relative z-10 min-h-0">
+    <main class="w-full max-w-5xl mx-auto px-3 py-2 flex-grow flex flex-col items-center justify-start relative z-10 min-h-0">
         
-        <!-- Scoreboard for 1-4 Players (Top Dashboard) -->
-        <div id="scoreboard-container" class="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 mb-2 shrink-0">
+        <!-- Scoreboard (1-4 Players) -->
+        <div id="scoreboard-container" class="w-full grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 shrink-0">
             <!-- Dynamically populated by JS -->
         </div>
 
-        <div id="board-wrapper" class="w-full flex-grow flex justify-center items-center py-1 min-h-0 relative">
-            <section id="game-board" class="game-board w-full h-full transition-all duration-300">
+        <div id="board-wrapper" class="w-full flex-grow flex justify-center items-center py-2 min-h-0 relative">
+            <section id="game-board" class="game-board w-full h-full max-w-4xl mx-auto">
                 <!-- Cards populated by JavaScript -->
             </section>
         </div>
     </main>
 
     <!-- Victory Modal -->
-    <div id="victory-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-md w-full text-center border-2 border-indigo-500/50 shadow-neon-glow transform scale-95 transition-transform duration-300" id="victory-card">
+    <div id="victory-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white p-8 md:p-10 rounded-[2rem] max-w-md w-full text-center border border-slate-200 shadow-2xl transform scale-95 transition-transform duration-300" id="victory-card">
             
-            <div class="relative w-20 h-20 mx-auto mb-4 flex items-center justify-center bg-gradient-to-tr from-amber-400 to-amber-600 rounded-2xl text-4xl shadow-gold-glow animate-bounce">
+            <div class="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center bg-orange-50 rounded-full text-5xl border-4 border-orange-100 animate-bounce shadow-inner">
                 🏆
             </div>
 
-            <h2 class="text-3xl font-extrabold font-display bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-transparent mb-1">
+            <h2 class="text-4xl font-extrabold font-display text-slate-800 mb-2">
                 VICTORY!
             </h2>
-            <p id="winner-announcement" class="text-slate-300 text-sm mb-4">ผู้ชนะคือ ผู้เล่นที่ 1 🎉</p>
+            <p id="winner-announcement" class="text-orange-600 font-bold text-lg mb-6">ผู้ชนะคือ ผู้เล่นที่ 1 🎉</p>
 
-            <div id="final-scoreboard-list" class="space-y-2 bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-left text-sm mb-6">
+            <div id="final-scoreboard-list" class="space-y-3 bg-slate-50 p-5 rounded-2xl border border-slate-100 text-left text-sm mb-8 shadow-inner">
                 <!-- Final scores -->
             </div>
 
-            <div class="flex gap-3">
-                <button onclick="restartGame()" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-emerald-500 text-white font-bold text-base shadow-neon-glow hover:brightness-110 transition active:scale-95">
-                    เล่นอีกครั้ง 🚀
-                </button>
-            </div>
+            <button onclick="restartGame()" class="w-full py-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all active:scale-95 flex justify-center items-center gap-2">
+                <span>เล่นอีกครั้ง</span>
+                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </button>
         </div>
     </div>
 
     <script>
+        // ระบบคลังภาพแบบสุ่ม (สุ่มจาก Seed มากกว่า 2,000 แบบ)
+        // รับประกันว่าคลังภาพจะเปลี่ยน Set ไปเรื่อยๆ ไม่ซ้ำเดิมในแต่ละรอบ
+        function generateRandomImages(count) {
+            const imageSet = [];
+            const usedSeeds = new Set();
+            while (imageSet.length < count) {
+                // สุ่ม Seed จาก 1 ถึง 2000 เพื่อความหลากหลายแบบไม่จำกัด
+                const randomSeed = Math.floor(Math.random() * 2000) + 1;
+                if (!usedSeeds.has(randomSeed)) {
+                    usedSeeds.add(randomSeed);
+                    imageSet.push(`https://picsum.photos/seed/${randomSeed}/400/400`);
+                }
+            }
+            return imageSet;
+        }
+
         class SoundEngine {
             constructor() {
                 this.ctx = null;
                 this.enabled = true;
             }
-
             init() {
                 if (!this.ctx) {
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     this.ctx = new AudioContext();
                 }
             }
-
             playTone(freq, duration, type = 'sine', gainVal = 0.1) {
                 if (!this.enabled) return;
                 this.init();
@@ -303,38 +351,30 @@
                     osc.stop(this.ctx.currentTime + duration);
                 } catch(e) {}
             }
-
-            flip() { this.playTone(400, 0.08, 'sine', 0.15); }
+            flip() { this.playTone(600, 0.05, 'sine', 0.1); }
             match() {
                 if (!this.enabled) return;
                 this.init();
-                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 0.2, 'triangle', 0.12), i * 60);
+                [659.25, 880, 1046.50].forEach((freq, i) => {
+                    setTimeout(() => this.playTone(freq, 0.2, 'square', 0.05), i * 80);
                 });
             }
             mismatch() {
-                this.playTone(220, 0.15, 'sawtooth', 0.1);
-                setTimeout(() => this.playTone(180, 0.2, 'sawtooth', 0.08), 100);
+                this.playTone(200, 0.2, 'sawtooth', 0.05);
             }
             victory() {
                 if (!this.enabled) return;
-                const notes = [440, 554.37, 659.25, 880, 659.25, 880];
+                const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
                 notes.forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 0.3, 'triangle', 0.2), i * 120);
+                    setTimeout(() => this.playTone(freq, 0.3, 'square', 0.08), i * 150);
                 });
             }
         }
 
         const soundFX = new SoundEngine();
 
-        const allAnimalEmojis = [
-            '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', 
-            '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', 
-            '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', 
-            '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞'
-        ];
-
-        let totalCards = 16;
+        // Fixed at 16 cards for Pro aesthetics and balance
+        const totalCards = 16;
         let playerCount = 1;
         let currentTurn = 0;
         let playerScores = [0, 0, 0, 0];
@@ -363,32 +403,43 @@
 
             renderScoreboard();
 
-            const numPairs = totalCards / 2;
-            const selectedEmojis = allAnimalEmojis.slice(0, numPairs);
-            cards = [...selectedEmojis, ...selectedEmojis];
+            // สุ่มเซ็ตภาพใหม่ 8 ภาพสำหรับรอบนี้ (เปลี่ยน Set ใหม่ตลอด)
+            const currentRoundImages = generateRandomImages(8);
+            
+            // โหลดภาพล่วงหน้า (Preload) เพื่อให้ลื่นไหลตอนเปิดไพ่
+            currentRoundImages.forEach(src => {
+                const img = new Image();
+                img.src = src;
+            });
+
+            // สร้างสำรับไพ่ 16 ใบ จากภาพที่สุ่มมา
+            cards = [...currentRoundImages, ...currentRoundImages];
             shuffle(cards);
 
-            boardElement.className = `game-board grid-${totalCards} transition-all duration-300`;
             boardElement.innerHTML = '';
-
             const fragment = document.createDocumentFragment();
 
-            cards.forEach((animal, index) => {
+            cards.forEach((imgSrc, index) => {
                 const cardContainer = document.createElement('div');
                 cardContainer.className = `card-container`;
 
                 const memoryCard = document.createElement('div');
                 memoryCard.className = 'memory-card w-full h-full';
-                memoryCard.dataset.animal = animal;
-                memoryCard.dataset.index = index;
+                memoryCard.dataset.image = imgSrc;
 
+                // Front Face (Image)
                 const frontFace = document.createElement('div');
                 frontFace.className = `card-face card-front`;
-                frontFace.textContent = animal;
+                const img = document.createElement('img');
+                img.src = imgSrc;
+                img.draggable = false;
+                // ป้องกันภาพแตก: ถ้าโหลดภาพไม่ได้ให้ใส่ภาพสำรองสีส้ม
+                img.onerror = function() { this.src = 'https://placehold.co/400x400/f97316/ffffff?text=Image'; };
+                frontFace.appendChild(img);
 
+                // Back Face (Glossy Black with Number)
                 const backFace = document.createElement('div');
                 backFace.className = 'card-face card-back';
-                
                 const badge = document.createElement('div');
                 badge.className = `card-number-badge`;
                 badge.textContent = index + 1;
@@ -404,11 +455,7 @@
 
             boardElement.appendChild(fragment);
 
-            [8, 16, 32, 64].forEach(level => {
-                const btn = document.getElementById(`btn-${level}`);
-                if (level === totalCards) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
+            // Update UI buttons
             [1, 2, 3, 4].forEach(p => {
                 const btn = document.getElementById(`p-btn-${p}`);
                 if (p === playerCount) btn.classList.add('active');
@@ -418,36 +465,30 @@
 
         function renderScoreboard() {
             scoreboardContainer.innerHTML = '';
-            scoreboardContainer.className = `w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-${Math.min(playerCount, 4)} gap-2 mb-2 shrink-0`;
             
             for (let i = 0; i < playerCount; i++) {
                 const isActive = (i === currentTurn);
                 const pBox = document.createElement('div');
-                pBox.className = `glass-panel p-2 md:p-3 rounded-xl flex items-center justify-between player-card ${isActive ? 'active-turn' : 'opacity-70'}`;
+                pBox.className = `glass-panel p-2 md:p-3 rounded-2xl flex items-center justify-between player-card ${isActive ? 'active-turn' : 'opacity-80'}`;
                 
                 pBox.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-xs md:text-sm">
+                    <div class="flex items-center gap-2 md:gap-3">
+                        <div class="p-icon w-8 h-8 md:w-10 md:h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm transition-colors duration-300">
                             P${i + 1}
                         </div>
-                        <div>
-                            <div class="text-[10px] text-slate-400 font-medium">ผู้เล่นคนที่ ${i + 1}</div>
-                            <div class="text-xs md:text-sm font-bold text-white">${isActive ? '✨ ตาของคุณ' : 'รอสักครู่'}</div>
+                        <div class="flex flex-col justify-center">
+                            <div class="text-[10px] md:text-xs text-slate-500 font-semibold uppercase tracking-wide">Player ${i + 1}</div>
+                            <div class="text-xs md:text-sm font-bold text-slate-800 ${isActive ? 'text-orange-600' : ''}">
+                                ${isActive ? 'YOUR TURN' : 'WAITING'}
+                            </div>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-sm md:text-lg font-bold font-display text-amber-400">${playerScores[i]}</span>
-                        <span class="text-[10px] text-slate-400 block">คะแนน</span>
+                    <div class="text-right pr-2">
+                        <span class="text-xl md:text-2xl font-black font-display text-slate-800">${playerScores[i]}</span>
                     </div>
                 `;
                 scoreboardContainer.appendChild(pBox);
             }
-        }
-
-        function changeDifficulty(newTotal) {
-            if (totalCards === newTotal) return;
-            totalCards = newTotal;
-            initGame();
         }
 
         function changePlayerCount(count) {
@@ -484,7 +525,7 @@
         }
 
         function checkForMatch() {
-            const isMatch = firstCard.dataset.animal === secondCard.dataset.animal;
+            const isMatch = firstCard.dataset.image === secondCard.dataset.image;
 
             if (isMatch) {
                 disableMatchedCards();
@@ -494,23 +535,26 @@
         }
 
         function disableMatchedCards() {
+            lockBoard = true; // Lock until animation completes
             firstCard.removeEventListener('click', flipCard);
             secondCard.removeEventListener('click', flipCard);
-
-            firstCard.classList.add('flip', 'matched');
-            secondCard.classList.add('flip', 'matched');
 
             soundFX.match();
             playerScores[currentTurn]++;
             successfulMatches++;
-
             renderScoreboard();
 
-            if (successfulMatches === totalCards / 2) {
-                setTimeout(handleVictory, 400);
-            } else {
+            // Wait a moment so players see the match, then shrink and remove them
+            setTimeout(() => {
+                firstCard.classList.add('matched');
+                secondCard.classList.add('matched');
+                
                 resetBoardState();
-            }
+
+                if (successfulMatches === totalCards / 2) {
+                    setTimeout(handleVictory, 500);
+                }
+            }, 800);
         }
 
         function unflipMismatchCards() {
@@ -526,7 +570,7 @@
                 
                 currentTurn = (currentTurn + 1) % playerCount;
                 renderScoreboard();
-            }, 750);
+            }, 1000);
         }
 
         function resetBoardState() {
@@ -546,11 +590,11 @@
 
             let announcement = '';
             if (playerCount === 1) {
-                announcement = `ยินดีด้วย! คุณเก็บการ์ดครบทั้งหมดแล้ว 🎉`;
+                announcement = `ยอดเยี่ยม! คุณทำสำเร็จแล้ว 🏆`;
             } else if (winners.length === 1) {
-                announcement = `🏆 ผู้ชนะคือ ผู้เล่นที่ ${winners[0]} ด้วยคะแนน ${maxScore} คะแนน!`;
+                announcement = `🏆 ผู้ชนะ: Player ${winners[0]} (${maxScore} คะแนน)`;
             } else {
-                announcement = `🤝 เสมอกัน! ระหว่างผู้เล่นที่ ${winners.join(', ')} (${maxScore} คะแนน)`;
+                announcement = `🤝 เสมอกัน! Player ${winners.join(', ')} (${maxScore} คะแนน)`;
             }
 
             document.getElementById('winner-announcement').textContent = announcement;
@@ -558,9 +602,9 @@
             let scoreListHTML = '';
             for (let i = 0; i < playerCount; i++) {
                 scoreListHTML += `
-                    <div class="flex justify-between items-center text-xs md:text-sm">
-                        <span class="text-slate-300 font-medium">ผู้เล่นคนที่ ${i + 1}</span>
-                        <span class="font-bold text-amber-400">${playerScores[i]} คู่</span>
+                    <div class="flex justify-between items-center text-sm md:text-base border-b border-slate-200 last:border-0 pb-2 mb-2 last:mb-0 last:pb-0">
+                        <span class="text-slate-600 font-semibold">Player ${i + 1}</span>
+                        <span class="font-black text-slate-800 bg-slate-200 px-3 py-1 rounded-lg">${playerScores[i]}</span>
                     </div>
                 `;
             }
@@ -579,18 +623,20 @@
             canvas.height = window.innerHeight;
 
             const particles = [];
-            const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#3b82f6'];
+            const colors = ['#f97316', '#ea580c', '#334155', '#94a3b8', '#fbbf24', '#ffffff'];
 
-            for (let i = 0; i < 80; i++) {
+            for (let i = 0; i < 100; i++) {
                 particles.push({
                     x: canvas.width / 2,
                     y: canvas.height / 2,
-                    vx: (Math.random() - 0.5) * 14,
-                    vy: (Math.random() - 0.6) * 14,
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: (Math.random() - 0.7) * 16,
                     color: colors[Math.floor(Math.random() * colors.length)],
-                    radius: Math.random() * 5 + 3,
-                    gravity: 0.2,
-                    alpha: 1
+                    radius: Math.random() * 6 + 4,
+                    gravity: 0.25,
+                    alpha: 1,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 10
                 });
             }
 
@@ -602,16 +648,27 @@
                     p.x += p.vx;
                     p.y += p.vy;
                     p.vy += p.gravity;
-                    p.alpha -= 0.015;
+                    p.rotation += p.rotationSpeed;
+                    p.alpha -= 0.012;
 
                     if (p.alpha > 0) {
                         alive = true;
                         ctx.save();
                         ctx.globalAlpha = p.alpha;
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate((p.rotation * Math.PI) / 180);
                         ctx.fillStyle = p.color;
                         ctx.beginPath();
-                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        // Draw square confetti
+                        ctx.rect(-p.radius, -p.radius, p.radius * 2, p.radius * 2);
                         ctx.fill();
+                        
+                        // Add stroke for contrast
+                        if(p.color === '#ffffff') {
+                            ctx.strokeStyle = '#e2e8f0';
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
                         ctx.restore();
                     }
                 });
@@ -630,7 +687,6 @@
         }
 
         function restartGame() {
-            initGroup = true;
             initGame();
         }
 
